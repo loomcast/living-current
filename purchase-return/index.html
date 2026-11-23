@@ -1,1 +1,82 @@
-
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#fbf8f3">
+<title>Thank you | Loomcast</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700&family=Literata:opsz,wght@7..72,400;7..72,500&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#211b19;--muted:#766b64;--paper:#fbf8f3;--orange:#f36b35;--line:#e9dfd5;--serif:'Manrope',Arial,sans-serif;--reading:'Literata',Georgia,serif;--mono:'DM Mono',monospace}
+*{box-sizing:border-box}body{margin:0;min-height:100vh;background:linear-gradient(135deg,#fbf8f3,#f6e9dc);color:var(--ink);font-family:var(--serif);display:grid;place-items:center;padding:24px}.topline{position:fixed;top:0;left:0;right:0;height:5px;background:linear-gradient(90deg,#f34c32,#f68a42,#f4bc71)}.panel{width:min(570px,100%);background:rgba(255,253,250,.82);border:1px solid #fff;box-shadow:0 25px 80px #4c30201a;padding:clamp(30px,7vw,58px);text-align:center;backdrop-filter:blur(18px)}.brand{font:700 22px var(--serif);letter-spacing:.02em}.eyebrow{font:10px var(--mono);letter-spacing:.16em;text-transform:uppercase;color:var(--orange);margin-top:42px}.mark{width:52px;height:52px;border:1px solid #e5c9b8;border-radius:50%;display:grid;place-items:center;margin:24px auto 20px;color:#a65c3c;font-size:24px}.panel h1{font:500 clamp(34px,6vw,46px)/1.1 var(--serif);letter-spacing:-.04em;margin:0 0 16px}.panel p{font:16px/1.8 var(--reading);color:#65574f;margin:0 auto;max-width:420px}.return-note{font:10px var(--mono);letter-spacing:.04em;color:var(--muted);margin-top:30px}.progress{height:2px;background:#e9dfd5;margin:28px auto 0;max-width:210px;overflow:hidden}.progress span{display:block;width:0;height:100%;background:var(--orange);animation:load 1.8s linear forwards}@keyframes load{to{width:100%}}.manual{display:inline-block;margin-top:22px;font-size:12px;color:#9a5536;text-decoration:underline;text-underline-offset:4px}
+</style>
+</head>
+<body>
+<div class="topline"></div>
+<main class="panel">
+ <div class="brand">Loomcast</div>
+ <div class="eyebrow">A NOTE OF APPRECIATION</div>
+ <div class="mark" aria-hidden="true">✓</div>
+ <h1 id="thankTitle">Thank you for supporting Loomcast.</h1>
+ <p id="thankMessage">We appreciate your interest in our work. You are being returned to the publications and events page.</p>
+ <div class="progress"><span></span></div>
+ <div class="return-note">RETURNING TO LOOMCAST</div>
+ <a class="manual" id="manualLink" href="../sales-events/">Continue to Loomcast</a>
+</main>
+<script>
+/* This page records a return in this browser only. It is not payment verification
+   and does not create a shared/global sales counter. */
+(function(){
+ const RETURN_TRACKING_ENABLED=true; // set false to stop local browser-side counter updates
+ const params=new URLSearchParams(location.search);
+ const type=params.get("type")||"book";
+ const eventId=params.get("event_id")||"";
+ const reference=params.get("ref")||"";
+ const success=params.get("status")==="success";
+ const key="loomcast_sales_v1";
+ let state={};
+ try{state=JSON.parse(localStorage.getItem(key)||"{}")}catch(e){state={}}
+ state.eventReturns=state.eventReturns||{};
+ let countThisReturn=success&&RETURN_TRACKING_ENABLED;
+ let duplicateReturn=false;
+ if(countThisReturn){
+  try{
+   if(reference){
+    state.processedRefs=state.processedRefs||{};
+    const refKey=type+":"+reference;
+    if(state.processedRefs[refKey]){countThisReturn=false;duplicateReturn=true;}
+    else state.processedRefs[refKey]=true;
+   }else{
+    const sessionKey="loomcast_return_seen_"+type+"_"+eventId;
+    if(sessionStorage.getItem(sessionKey)){countThisReturn=false;duplicateReturn=true;}
+    else sessionStorage.setItem(sessionKey,"1");
+   }
+  }catch(e){}
+ }
+ if(countThisReturn){
+  if(type==="event"&&eventId){
+   state.eventReturns[eventId]=Number(state.eventReturns[eventId]||0)+1;
+   document.getElementById("thankTitle").textContent="Thank you for your interest in this Loomcast event.";
+   document.getElementById("thankMessage").textContent="We appreciate your support. Check your Selar confirmation for your ticket or booking details.";
+  }else{
+   state.bookReturns=Number(state.bookReturns||0)+1;
+   document.getElementById("thankTitle").textContent="Thank you for supporting The Living Current.";
+   document.getElementById("thankMessage").textContent="We appreciate your support. Check your Selar confirmation for your digital edition and access details.";
+  }
+  try{localStorage.setItem(key,JSON.stringify(state))}catch(e){}
+ }else if(!success){
+  document.getElementById("thankTitle").textContent="Welcome back to Loomcast.";
+  document.getElementById("thankMessage").textContent="You are being returned to the publications and events page.";
+ }else if(duplicateReturn){
+  document.getElementById("thankTitle").textContent="Welcome back to Loomcast.";
+  document.getElementById("thankMessage").textContent="Your return has already been recorded in this browser session. You are being taken back to the publications and events page.";
+ }
+ const destination="../sales-events/"+(type==="event"?"#events":"#book");
+ document.getElementById("manualLink").href=destination;
+ setTimeout(()=>{location.href=destination},1800);
+})();
+</script>
+</body>
+</html>
